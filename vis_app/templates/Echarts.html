@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <!-- 引入 echarts.js -->
+    <!-- <script src="echarts.min.js"></script> -->
+    <script src= "/static/echarts.min.js" ></script>
+    <!-- <script src="china.js"></script>
+    <script src="bmap.min.js"></script> -->
+</head>
+
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 1200px;height:800px;"></div>
+    <!-- <input type="date" value="2015-09-24" />
+    <input type="datetime" value="2015-09-24" />
+    <input type="datetime-local" value="2015-09-24" /> -->
+
+
+</body>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    var dataList = {{ data|safe }};
+    option = {
+        animation: false,
+        legend: {
+            data: ['温度']
+        },
+        tooltip: {
+        
+            showContent: true
+        },
+        dataset: {
+        source: dataList
+    },
+        xAxis: {
+            type: 'time',
+            min: 'dataMin',
+            max: 'dataMax',
+            splitLine: {
+                show: true
+            }
+        },
+        yAxis: {
+            type: 'category',
+            // min: 'dataMin',
+            // max: 'dataMax',
+            splitLine: {
+                show: true
+            }
+        },
+        dataZoom: [
+            {
+                type: 'slider',
+                show: true,
+                xAxisIndex: [0],
+                start: 30,
+                end: 35
+            },
+            {
+                type: 'slider',
+                show: true,
+                yAxisIndex: [0],
+                // left: '93%',
+                start: 30,
+                end: 35
+            },
+            {
+                type: 'inside',
+                xAxisIndex: [0],
+                start: 30,
+                end: 35
+            },
+            // {
+            //     type: 'inside',
+            //     yAxisIndex: [0],
+            //     start: 30,
+            //     end: 35
+            // }
+        ],
+        series: [
+            {
+                name: 'scatter',
+                type: 'scatter',
+                itemStyle: {
+                    normal: {
+                        opacity: 0.8
+                    }
+                },
+                symbolSize: function (val) {
+                    return val[4] * 0.5;
+                },
+                encode:{
+                    x:'date',
+                    y:'city'
+                },
+                label: {
+                    emphasis: {
+                        show: true,
+                        formatter: function (param) {
+                            return param.data[3]+param.data[0]+param.data[4];
+                        },
+                        position: 'top'
+                    }
+                },
+
+
+            }
+        ]
+    }
+    
+    myChart.setOption(option);
+</script>
+
+</html>

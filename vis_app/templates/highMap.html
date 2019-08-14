@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block title %}
+echarts
+{% endblock %}
+
+{% block head %}
+<!-- 引入 echarts.min.js -->
+<script src="/static/echarts.min.js"></script>
+<script src="/static/china.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class="mdui-center" style="width: 1300px;height:880px;"></div>
+<div id="poupu" class="mdui-center" style="width: 1300px;height:500px"></div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myMap = echarts.init(document.getElementById('main'));
+
+    var location_count = {{ location_count| safe }};
+    var loc_year_count = {{ year_count| safe }};
+    var year_list = {{ year_list| safe }}
+
+    mapOption = {
+        dataset: {
+            dimensions: ['地点', '经度', '纬度', '频次(d)'],
+            source: location_count,
+        },
+        backgroundColor: '#404a59',
+        title: {
+            text: '1981-2010年部分地区高温频次（天）',
+            left: 'center',
+            textStyle: {
+                color: '#fff',
+                fontWeight: 'lighter',
+                fontSize: 28,
+            }
+        },
+        tooltip: {},
+        legend: {
+            bottom: 10,
+            right: 10,
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        visualMap: {
+            left: 10,
+            bottom: 10,
+            pieces: [
+                { min: 2000, label: '>2000（天）' },
+                { min: 1000, max: 2000, label: '100-2000（天）' },
+                { min: 700, max: 1000, label: '700-1000（天）' },
+                { min: 500, max: 700, label: '500-700（天）' },
+                { min: 350, max: 500, label: '350-500（天）' },
+                { min: 200, max: 350, label: '200-350（天）' },
+                { min: 100, max: 200, label: '100-200（天）' },
+                { min: 50, max: 100, label: '50-100（天）' },
+                { min: 20, max: 50, label: '20-50（天）' },
+                { mmin: 0, max: 20, label: '0-20（天）' }
+            ],
+            color: ['#d94e5d', '#eac736', '#50a3ba'],
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        geo: {
+            map: 'china',
+            label: {
+                emphasis: {
+                    show: false
+                }
+            },
+            itemStyle: {
+                normal: {
+                    areaColor: '#323c48',
+                    borderColor: '#111'
+                },
+                emphasis: {
+                    areaColor: '#2a333d'
+                }
+            }
+        },
+        series: [
+            {
+                name: '高温频次统计',
+                type: 'scatter',
+                coordinateSystem: 'geo',
+                encode: {
+                    lng: 1,
+                    lat: 2,
+                    tooltip: [0, 3]
+                },
+                symbolSize: 10,
+                label: {
+                    normal: {
+                        formatter: '{@[0]}:{@[3]}次',
+                        position: 'right',
+                        show: false,
+                    },
+                    emphasis: {
+                        show: false
+                    }
+                },
+                itemStyle: {
+                    emphasis: {
+                        borderColor: '#fff',
+                        borderWidth: 1
+                    }
+                }
+            }
+        ]
+    }
+    myMap.setOption(mapOption);
+
+    myMap.on('click', function (params) {
+        place = params.data[0]
+        var myChart = echarts.init(document.getElementById('poupu'));
+        chartOption = {
+            title: {
+                text: place
+            },
+            xAxis: {
+
+            },
+            yAxis: {
+                data: year_list
+            },
+            series: [{
+                type: 'line',
+                data: loc_year_count[place]
+            }]
+        }
+
+        myChart.setOption(chartOption)
+
+        console.log(data);
+    });
+
+</script>
+{% endblock %}

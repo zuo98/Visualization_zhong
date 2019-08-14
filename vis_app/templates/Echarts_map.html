@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>ECharts</title>
+    <!-- 引入 echarts.min.js -->
+    <script src="/static/echarts.min.js"></script>
+    <script src="/static/china.js"></script>
+</head>
+
+<body>
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main" style="width: 1200px;height:800px;"></div>
+
+
+
+</body>
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+
+    // var data = {{ data| safe }};
+    var place_lonlat = {{ place_lonlat| safe }};
+
+    function myFunction() {
+
+        var data = {{ data|safe }};
+        var location = data[0];
+        var count = data[1];
+
+
+        var location_count = [];
+
+        for (var i = 0; i < location.length; i++) {
+            // location_count.push({ name: location[i], value: count[i] })
+            location_count[i]={ name: location[i], value: count[i] }
+        }
+        return location_count
+    }
+
+    var location_count = myFunction()
+
+    var geoCoordMap = place_lonlat
+
+    var convertData = function (data) {
+        var res = [];
+        for (var i = 0; i < data.length; i++) {
+            var geoCoord = geoCoordMap[data[i].name];
+            if (geoCoord) {
+                res.push(geoCoord.concat(data[i].value));
+            }
+        }
+        return res;
+    };
+
+    option = {
+        backgroundColor: '#404a59',
+        title: {
+            text: '1981-2010年全国城市高温频次',
+            // subtext: 'data from PM25.in',
+            // sublink: 'http://www.pm25.in',
+            left: 'center',
+            textStyle: {
+                color: '#fff',
+                fontWeight: 'lighter',
+                fontSize: 28,
+            }
+        },
+        // tooltip: {
+        //     // trigger: 'item',
+            
+        // // showContent: true
+  
+        // },
+        legend: {
+            orient: 'vertical',
+            top: 'bottom',
+            left: 'right',
+            data: ['count'],
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        visualMap: {
+            min: 0,
+            max: 1400,
+            splitNumber: 7,
+            color: ['#d94e5d','#eac736','#50a3ba'],
+            textStyle: {
+                color: '#fff'
+            }
+        },
+        geo: {
+            map: 'china',
+            label: {
+                emphasis: {
+                    show: false
+                }
+            },
+            itemStyle: {
+                normal: {
+                    areaColor: '#323c48',
+                    borderColor: '#111'
+                },
+                emphasis: {
+                    areaColor: '#2a333d'
+                }
+            }
+        },
+        series: [
+            {
+                name: 'count',
+                type: 'scatter',
+                coordinateSystem: 'geo',
+                data: convertData(location_count),
+                symbolSize: 12,
+                label: {
+                    
+                    normal: {
+                        formatter:'{b}:{@[2]}',
+                        position: 'right',
+                        show: false,
+                        // show: true
+                    },
+                    emphasis: {
+                        show: false
+                    }
+                },
+                itemStyle: {
+                    emphasis: {
+                        borderColor: '#fff',
+                        borderWidth: 1
+                    }
+                }
+            },
+            {
+            name: 'Top 5',
+            type: 'effectScatter',
+            coordinateSystem: 'geo',
+            data: convertData(location_count.sort(function (a, b) {
+                return b.value - a.value;
+            }).slice(0, 6)),
+            // symbolSize: function (val) {
+            //     return val[2] / 10;
+            // },
+            showEffectOn: 'emphasis',
+            rippleEffect: {
+                brushType: 'stroke'
+            },
+            hoverAnimation: true,
+            label: {
+                normal: {
+                    formatter: '{b}',
+                    position: 'right',
+                    show: true,
+                    // show:false
+                }
+            },
+            itemStyle: {
+                normal: {
+                    color: '#f4e925',
+                    shadowBlur: 10,
+                    shadowColor: '#333'
+                }
+            },
+            zlevel: 1
+        },
+        ]
+    }
+    myChart.setOption(option);
+</script>
+
+</html>
