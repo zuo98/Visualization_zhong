@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+
+{% block title %}
+高温变化
+{% endblock %}
+
+{% block head %}
+<!-- 引入 echarts.min.js -->
+<script src="/static/echarts.min.js"></script>
+<script src="/static/china.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class="mdui-center" style="width: 1300px;height:880px;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var myMap = echarts.init(document.getElementById('main'));
+
+    yearList = {{ yearList | safe }};
+    yearData = {{ yearData | safe }};
+
+    myMapOption = {
+        baseOption: {
+            timeline: {
+                autoPlay: true,
+                playInterval: 1000,
+                data: [],
+                width: 1000,
+                left: 'center',
+                label: {
+                    color: '#F2F2F2',
+                    formatter: function (s) {
+                        return (new Date(s)).getFullYear();
+                    }
+                },
+                lineStyle: {
+                    color: '#F2F2F2'
+                },
+                itemStyle: {
+                    color: '#F2F2F2'
+                },
+                controlStyle: {
+                    color: '#F2F2F2',
+                    borderColor: '#F2F2F2'
+                }
+            },
+            backgroundColor: '#404a59',
+            title: [
+                {
+                    text: yearList[0].toString(),
+                    textAlign: 'center',
+                    left: '80%',
+                    top: '45%',
+                    textStyle: {
+                        fontSize: 100,
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }
+                },
+                {
+                    text: '1981-2010年部分地区高温频次（天）',
+                    left: 'center',
+                    textStyle: {
+                        color: '#fff',
+                        fontWeight: 'lighter',
+                        fontSize: 28,
+                    }
+                },
+            ],
+            tooltip: {},
+            legend: {
+                bottom: 10,
+                right: 10,
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            visualMap: {
+                left: 10,
+                bottom: 10,
+                pieces: [
+                    { min: 50, label: '>50（天）' },
+                    { min: 40, max: 50, label: '40-50（天）' },
+                    { min: 35, max: 40, label: '35-40（天）' },
+                    { min: 30, max: 35, label: '30-35（天）' },
+                    { min: 25, max: 30, label: '25-30（天）' },
+                    { min: 20, max: 25, label: '20-25（天）' },
+                    { min: 15, max: 20, label: '15-20（天）' },
+                    { min: 10, max: 15, label: '10-15（天）' },
+                    { min: 5, max: 10, label: '5-10（天）' },
+                    { max: 5, label: '<5（天）' }
+                ],
+                color: ['#d94e5d', '#eac736', '#50a3ba'],
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            geo: {
+                map: 'china',
+                label: {
+                    emphasis: {
+                        show: false
+                    }
+                },
+                itemStyle: {
+                    normal: {
+                        areaColor: '#323c48',
+                        borderColor: '#111'
+                    },
+                    emphasis: {
+                        areaColor: '#2a333d'
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '高温频次统计',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    encode: {
+                        lng: 1,
+                        lat: 2,
+                        tooltip: [0, 3]
+                    },
+                    symbolSize: 10,
+                    label: {
+                        normal: {
+                            formatter: '{@[0]}:{@[3]}次',
+                            position: 'right',
+                            show: false,
+                        },
+                        emphasis: {
+                            show: false
+                        }
+                    },
+                    itemStyle: {
+                        emphasis: {
+                            borderColor: '#fff',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            ]
+        },
+        options: []
+    };
+
+    for (var i = 0; i < yearList.length; i++) {
+        myMapOption.baseOption.timeline.data.push(yearList[i].toString());
+        myMapOption.options.push({
+            title: {
+                text: yearList[i].toString(),
+            },
+            dataset: {
+                dimensions: ['地点', '经度', '纬度', '频次(d)'],
+                source: yearData[yearList[i].toString()],
+            },
+        })
+    }
+
+    myMap.setOption(myMapOption)
+
+</script>
+{% endblock %}

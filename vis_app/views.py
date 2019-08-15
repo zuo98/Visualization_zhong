@@ -60,6 +60,45 @@ def getLocSta(loc_sta):
     return loc_sta
 
 
+def getYearData(data):
+
+    # 给数据添加‘year’列，合并‘province’和’location‘，
+    # 添加‘lable’列，方便统计每个地方每年的高温频次
+    # 除掉多余列'province', 'date', 'hightemp'
+    data['year'] = data['date'].dt.year
+    data['location'] = data['province']+'-'+data['location']
+    data['lable'] = data['location']+'-'+data['year'].apply(str)
+    data.drop(['province', 'date', 'hightemp'], axis=1, inplace=True)
+
+    # 由‘lable’统计各地每年的高温频次，返回lable_count的DataFrame
+    data_count = data['lable'].value_counts()
+    lable = list(data_count.index)
+    count = list(data_count)
+    lable_count = pd.DataFrame({'lable': lable, 'count': count})
+
+    data = data.drop_duplicates()  # 去掉data的重复行，这步骤必须在统计频次之后
+    data = pd.merge(data, lable_count)  # 合并两个DataFrame
+    data.drop(['lable'], axis=1, inplace=True)  # 除去lable列
+
+    data = pd.pivot_table(
+        data, values='count',
+        index=['location', 'longitude', 'latitude'],
+        columns=['year'],
+        aggfunc=np.mean,
+        fill_value=0)
+    data.reset_index(inplace=True)
+
+    # 构建以year为key的数据字典
+    yearlist = list(range(1981, 2011))
+    yeardata = []
+    for year in yearlist:
+        yeardata.append(
+            data[['location', 'longitude', 'latitude', year]].values.tolist())
+    yearData = dict(zip(yearlist, yeardata))
+
+    return yearlist, yearData
+
+
 def getHome(request):
     return render_to_response('layout.html')
 
@@ -87,4 +126,17 @@ def getHighCountMap(request):
         'year_list': json.dumps(year_list),
         'year_count': json.dumps(year_count),
         'location_count': json.dumps(location_count)
+    })
+
+
+def getHighYearCountMap(request):
+    pkl = open('data.pickle', 'rb')
+    data = pickle.load(pkl)
+    pkl.close()
+
+    yearList, yearData = getYearData(data)
+
+    return render(request, 'highMapTimeline.html', {
+        'yearList': json.dumps(yearList),
+        'yearData': json.dumps(yearData)
     })
