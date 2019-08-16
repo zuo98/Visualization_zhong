@@ -99,6 +99,71 @@ def getYearData(data):
     return yearlist, yearData
 
 
+def getYearAirMean(data):
+    data = data.query('meancc == 0 and maxcc == 0 and mincc == 0')
+
+    data.eval('lat = lat / 100', inplace=True)
+    data.eval('lon = lon / 100', inplace=True)
+    data.eval('altitude = altitude / 10', inplace=True)
+    data.eval('mean = mean / 10', inplace=True)
+    data.eval('minima = minima / 10', inplace=True)
+    data.eval('maxima = maxima / 10', inplace=True)
+    data = data.round(
+        {'lat': 2, 'lon': 2, 'mean': 2, 'minima': 2, 'maxima': 2})
+    data['date'] = pd.to_datetime(data[['month', 'day', 'year']])
+    data['date'] = data['date'].dt.strftime('%Y-%m')  # 只保留年月方便后面计算月平均
+
+    data.drop(
+        ['year', 'month', 'day', 'altitude', 'meancc', 'maxcc', 'mincc'],
+        axis=1,
+        inplace=True,)
+
+    data = pd.pivot_table(
+        data, values='mean',
+        index=['stationid', 'lon', 'lat'],
+        columns=['date'],
+        aggfunc=np.mean,
+        fill_value=-9999)
+    yearList = list(data.columns)
+
+    data.reset_index(inplace=True)
+    yearMean = {}
+    for year in yearList:
+        yeardata = data[['stationid', 'lon', 'lat', year]].round({year: 2})
+        yearMean[year] = yeardata.values.tolist()
+    return yearList, yearMean
+
+
+def getStationAirtem(data):
+    data = data.query('meancc == 0 and maxcc == 0 and mincc == 0')
+
+    data.eval('lat = lat / 100', inplace=True)
+    data.eval('lon = lon / 100', inplace=True)
+    data.eval('altitude = altitude / 10', inplace=True)
+    data.eval('mean = mean / 10', inplace=True)
+    data.eval('minima = minima / 10', inplace=True)
+    data.eval('maxima = maxima / 10', inplace=True)
+
+    data = data.round(
+        {'lat': 2, 'lon': 2, 'mean': 2, 'minima': 2, 'maxima': 2})
+
+    data['date'] = pd.to_datetime(data[['month', 'day', 'year']])
+    data['date'] = data['date'].dt.strftime('%Y-%m-%d')
+
+    data.drop(
+        ['year', 'month', 'day', 'altitude', 'meancc', 'maxcc', 'mincc'],
+        axis=1,
+        inplace=True,)
+
+    stationList = list(set(data['stationid'].values.tolist()))
+    stationData = {}
+    for station in stationList:
+        stationData[str(station)] = data.query(
+            'stationid == {}'.format(str(station))).values.tolist()
+
+    return stationData
+
+
 def getHome(request):
     return render_to_response('layout.html')
 
@@ -139,4 +204,22 @@ def getHighYearCountMap(request):
     return render(request, 'highMapTimeline.html', {
         'yearList': json.dumps(yearList),
         'yearData': json.dumps(yearData)
+    })
+
+
+def airtemMapTimeline(request):
+    pkl = open('data2.pickle', 'rb')
+    data = pickle.load(pkl)
+    pkl.close()
+    yearList, yearMean = getYearAirMean(data)
+
+    pkl = open('data2.pickle', 'rb')
+    data = pickle.load(pkl)
+    pkl.close()
+    stationData = getStationAirtem(data)
+
+    return render(request, 'airtemMapTimeline.html', {
+        'yearList': json.dumps(yearList),
+        'yearMean': json.dumps(yearMean),
+        'stationData': json.dumps(stationData)
     })

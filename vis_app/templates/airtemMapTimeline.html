@@ -1,0 +1,258 @@
+{% extends "layout.html" %}
+
+{% block title %}
+高温变化
+{% endblock %}
+
+{% block head %}
+<!-- 引入 echarts.min.js -->
+<script src="/static/echarts.min.js"></script>
+<script src="/static/china.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="main" class="mdui-center" style="width: 1300px;height:880px;"></div>
+<div id="poupu" class="mdui-center" style="width: 1300px;height:500px"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var myMap = echarts.init(document.getElementById('main'));
+
+    yearList = {{ yearList | safe }};
+    yearMean = {{ yearMean | safe }};
+    stationData = {{ stationData | safe }}
+
+    myMapOption = {
+        baseOption: {
+            timeline: {
+                autoPlay: true,
+                playInterval: 1000,
+                data: [],
+                width: 1000,
+                left: 'center',
+                label: {
+                    show: false,
+                    color: '#F2F2F2',
+                    formatter: function (s) {
+                        return (new Date(s)).getFullYear();
+                    }
+                },
+                lineStyle: {
+                    color: '#F2F2F2'
+                },
+                itemStyle: {
+                    color: '#F2F2F2'
+                },
+                controlStyle: {
+                    color: '#F2F2F2',
+                    borderColor: '#F2F2F2'
+                }
+            },
+            backgroundColor: '#404a59',
+            title: [
+                {
+                    text: yearList[0].toString(),
+                    textAlign: 'center',
+                    left: '85%',
+                    top: '45%',
+                    textStyle: {
+                        fontSize: 80,
+                        color: 'rgba(255, 255, 255, 0.7)'
+                    }
+                },
+                {
+                    text: '2014-2016年部分地区月平均气温（℃）',
+                    left: 'center',
+                    textStyle: {
+                        color: '#fff',
+                        fontWeight: 'lighter',
+                        fontSize: 28,
+                    }
+                },
+            ],
+            tooltip: {},
+            legend: {
+                bottom: 10,
+                right: 10,
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            visualMap: {
+                left: 10,
+                bottom: 10,
+                pieces: [
+                    { min: 35, label: '>35（℃）' },
+                    { min: 30, max: 35, label: '30~35（℃）' },
+                    { min: 25, max: 30, label: '25~30（℃）' },
+                    { min: 20, max: 25, label: '20~25（℃）' },
+                    { min: 15, max: 20, label: '15~20（℃）' },
+                    { min: 10, max: 15, label: '10~15（℃）' },
+                    { min: 5, max: 10, label: '5~10（℃）' },
+                    { min: 0, max: 5, label: '0~5（℃）' },
+                    { min: -5, max: 0, label: '-5~0（℃）' },
+                    { min: -10, max: -5, label: '-10~-5（℃）' },
+                    { min: -15, max: -10, label: '-15~-10（℃）' },
+                    { max: -15, label: '<-15（℃）' },
+                    { max: -999, label: '数据缺失' }
+                ],
+                color: ['#d94e5d', '#eac736', '#50a3ba'],
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            geo: {
+                map: 'china',
+                label: {
+                    emphasis: {
+                        show: false
+                    }
+                },
+                itemStyle: {
+                    normal: {
+                        areaColor: '#323c48',
+                        borderColor: '#111'
+                    },
+                    emphasis: {
+                        areaColor: '#2a333d'
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '气温',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    encode: {
+                        lng: 1,
+                        lat: 2,
+                        tooltip: [0, 3]
+                    },
+                    symbolSize: 10,
+                    label: {
+                        normal: {
+                            formatter: '{@[0]}:{@[3]}次',
+                            position: 'right',
+                            show: false,
+                        },
+                        emphasis: {
+                            show: false
+                        }
+                    },
+                    itemStyle: {
+                        emphasis: {
+                            borderColor: '#fff',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            ]
+        },
+        options: []
+    };
+
+    for (var i = 0; i < yearList.length; i++) {
+        myMapOption.baseOption.timeline.data.push(yearList[i].toString());
+        myMapOption.options.push({
+            title: {
+                text: yearList[i].toString(),
+            },
+            dataset: {
+                dimensions: ['站点ID', '经度', '纬度', '温度（℃）'],
+                source: yearMean[yearList[i].toString()],
+            },
+        })
+    }
+
+    myMap.setOption(myMapOption)
+
+    myMap.on('click', function (params) {
+        stationID = params.data[0].toString()
+        var myChart = echarts.init(document.getElementById('poupu'));
+        chartOption = {
+            title: {
+                text: '站点：' + stationID
+            },
+            dataset: {
+                dimensions: ['站点ID', '纬度', '经度', '平均温度', '最高温度', '最低温度', '日期'],
+                source: stationData[stationID],
+            },
+            tooltip: {
+                trigger: 'axis',
+                showContent: true,
+            },
+            legend: {
+                top: 10,
+                right: 30,
+                // orient:'vertical',
+                // formatter: 'Legend {name}',
+                // data: [{'平均温度', '最高温度', '最低温度'],
+                data:[{
+                    name:'平均温度'
+                },{
+                    name:'最高温度'
+                },{
+                    name:'最低温度'
+                }],
+                textStyle: {
+                    color: '#fff'
+                }
+            },
+            xAxis: {
+                type: 'time'
+            },
+            yAxis: {
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    show: true,
+                    xAxisIndex: [0],
+                    start: 1,
+                    end: 35
+                },
+                {
+                    type: 'inside',
+                    xAxisIndex: [0],
+                    start: 1,
+                    end: 35
+                }
+            ],
+            series: [{
+                name: '平均温度',
+                type: 'line',
+                encode: {
+                    x: [6],
+                    y: [3],
+                    tooltip: [3]
+                }
+            },
+            {
+                name: '最高温度',
+                type: 'line',
+                encode: {
+                    x: [6],
+                    y: [4],
+                    tooltip: [4]
+                }
+            },
+            {
+                name: '最低温度',
+                type: 'line',
+                encode: {
+                    x: [6],
+                    y: [5],
+                    tooltip: [5]
+                }
+            }
+            ]
+        }
+
+        myChart.setOption(chartOption)
+
+        console.log(params);
+    });
+
+</script>
+{% endblock %}

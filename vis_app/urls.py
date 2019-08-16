@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.getHome, name='home'),
     path('map', views.getHighCountMap, name='map'),
     path('yearMap', views.getHighYearCountMap, name='yearMap'),
+    path('airtem', views.airtemMapTimeline, name='airtem')
 ]

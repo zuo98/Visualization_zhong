@@ -1,2 +1,4 @@
 data.pickle
 /env/
+data2.pickle
+db.sqlite3
