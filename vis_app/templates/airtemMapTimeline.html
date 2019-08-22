@@ -12,7 +12,9 @@
 
 {% block content %}
 <div id="main" class="mdui-center" style="width: 1300px;height:880px;"></div>
-<div id="poupu" class="mdui-center" style="width: 1300px;height:500px"></div>
+<div class="mdui-dialog" id="dialog">
+    <div id="poupu" class="mdui-center" style="width: 700px;height:500px"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -170,9 +172,11 @@
     myMap.on('click', function (params) {
         stationID = params.data[0].toString()
         var myChart = echarts.init(document.getElementById('poupu'));
+        var inst = new mdui.Dialog('#dialog');
         chartOption = {
             title: {
-                text: '站点：' + stationID
+                text: '站点：' + stationID,
+                left: 'center'
             },
             dataset: {
                 dimensions: ['站点ID', '纬度', '经度', '平均温度', '最高温度', '最低温度', '日期'],
@@ -181,23 +185,6 @@
             tooltip: {
                 trigger: 'axis',
                 showContent: true,
-            },
-            legend: {
-                top: 10,
-                right: 30,
-                // orient:'vertical',
-                // formatter: 'Legend {name}',
-                // data: [{'平均温度', '最高温度', '最低温度'],
-                data:[{
-                    name:'平均温度'
-                },{
-                    name:'最高温度'
-                },{
-                    name:'最低温度'
-                }],
-                textStyle: {
-                    color: '#fff'
-                }
             },
             xAxis: {
                 type: 'time'
@@ -210,13 +197,13 @@
                     show: true,
                     xAxisIndex: [0],
                     start: 1,
-                    end: 35
+                    end: 30
                 },
                 {
                     type: 'inside',
                     xAxisIndex: [0],
                     start: 1,
-                    end: 35
+                    end: 30
                 }
             ],
             series: [{
@@ -250,7 +237,7 @@
         }
 
         myChart.setOption(chartOption)
-
+        inst.open();
         console.log(params);
     });
 
