@@ -1,5 +1,4 @@
 import json
-import pickle
 
 import numpy as np
 import pandas as pd
@@ -8,83 +7,6 @@ from django.shortcuts import render, render_to_response
 from vis_app.config import postgreSQLconnect
 
 # Create your views here.
-
-
-def getYearAirMean(data):
-    data = data.query('meancc == 0 and maxcc == 0 and mincc == 0')
-
-    data.eval('lat = lat / 100', inplace=True)
-    data.eval('lon = lon / 100', inplace=True)
-    data.eval('altitude = altitude / 10', inplace=True)
-    data.eval('mean = mean / 10', inplace=True)
-    data.eval('minima = minima / 10', inplace=True)
-    data.eval('maxima = maxima / 10', inplace=True)
-    data = data.round({
-        'lat': 2,
-        'lon': 2,
-        'mean': 2,
-        'minima': 2,
-        'maxima': 2
-    })
-    data['date'] = pd.to_datetime(data[['month', 'day', 'year']])
-    data['date'] = data['date'].dt.strftime('%Y-%m')  # 只保留年月方便后面计算月平均
-
-    data.drop(
-        ['year', 'month', 'day', 'altitude', 'meancc', 'maxcc', 'mincc'],
-        axis=1,
-        inplace=True,
-    )
-
-    data = pd.pivot_table(data,
-                          values='mean',
-                          index=['stationid', 'lon', 'lat'],
-                          columns=['date'],
-                          aggfunc=np.mean,
-                          fill_value=-9999)
-    yearList = list(data.columns)
-
-    data.reset_index(inplace=True)
-    yearMean = {}
-    for year in yearList:
-        yeardata = data[['stationid', 'lon', 'lat', year]].round({year: 2})
-        yearMean[year] = yeardata.values.tolist()
-    return yearList, yearMean
-
-
-def getStationAirtem(data):
-    data = data.query('meancc == 0 and maxcc == 0 and mincc == 0')
-
-    data.eval('lat = lat / 100', inplace=True)
-    data.eval('lon = lon / 100', inplace=True)
-    data.eval('altitude = altitude / 10', inplace=True)
-    data.eval('mean = mean / 10', inplace=True)
-    data.eval('minima = minima / 10', inplace=True)
-    data.eval('maxima = maxima / 10', inplace=True)
-
-    data = data.round({
-        'lat': 2,
-        'lon': 2,
-        'mean': 2,
-        'minima': 2,
-        'maxima': 2
-    })
-
-    data['date'] = pd.to_datetime(data[['month', 'day', 'year']])
-    data['date'] = data['date'].dt.strftime('%Y-%m-%d')
-
-    data.drop(
-        ['year', 'month', 'day', 'altitude', 'meancc', 'maxcc', 'mincc'],
-        axis=1,
-        inplace=True,
-    )
-
-    stationList = list(set(data['stationid'].values.tolist()))
-    stationData = {}
-    for station in stationList:
-        stationData[str(station)] = data.query('stationid == {}'.format(
-            str(station))).values.tolist()
-
-    return stationData
 
 
 def getHome(request):
@@ -144,7 +66,6 @@ def airtemMapTimeline(request):
     for y in range(2014, 2017):
         for m in range(1, 13):
             date_list.append(str(y) + '|' + str(m))
-    print(date_list)
 
     # 连接到一个给定的数据库
     conn = postgreSQLconnect()
@@ -157,8 +78,6 @@ def airtemMapTimeline(request):
 
     hightem = pd.DataFrame(np.array(rowstem),
                            columns=['stationid', 'lon', 'lat'] + date_list)
-
-    print(hightem.head())
 
     year_mean = {}
     for date in date_list:
