@@ -12,14 +12,18 @@
 
 {% block content %}
 <div id="main" class="mdui-center" style="width: 1300px;height:880px;"></div>
+<div class="mdui-dialog" id="dialog">
+    <div id="poupu" class="mdui-center" style="width: 700px;height:500px"></div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
     var myMap = echarts.init(document.getElementById('main'));
 
-    yearList = {{ yearList | safe }};
-    yearData = {{ yearData | safe }};
+    var yearList = {{ yearList | safe }};
+    var yearData = {{ yearData | safe }};
+    var loc_year_count = {{ year_count| safe }};
 
     myMapOption = {
         baseOption: {
@@ -160,6 +164,40 @@
     }
 
     myMap.setOption(myMapOption)
+
+    window.addEventListener("resize", function () {
+        myMap.resize();
+    });
+
+    myMap.on('click', function (params) {
+        place = params.data[0]
+        var myChart = echarts.init(document.getElementById('poupu'));
+        var inst = new mdui.Dialog('#dialog');
+        chartOption = {
+            title: {
+                text: place,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                showContent: true,
+            },
+            xAxis: {
+                data: yearList
+            },
+            yAxis: {
+
+            },
+            series: [{
+                type: 'line',
+                data: loc_year_count[place]
+            }]
+        }
+
+        myChart.setOption(chartOption)
+        inst.open();
+        console.log(data);
+    });
 
 </script>
 {% endblock %}

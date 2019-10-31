@@ -23,7 +23,7 @@
 
     yearList = {{ yearList | safe }};
     yearMean = {{ yearMean | safe }};
-    stationData = {{ stationData | safe }}
+    // stationData = {{ stationData | safe }}
 
     myMapOption = {
         baseOption: {
@@ -169,7 +169,7 @@
 
     myMap.setOption(myMapOption)
 
-    myMap.on('click', function (params) {
+    /* myMap.on('click', function (params) {
         stationID = params.data[0].toString()
         var myChart = echarts.init(document.getElementById('poupu'));
         var inst = new mdui.Dialog('#dialog');
@@ -239,7 +239,7 @@
         myChart.setOption(chartOption)
         inst.open();
         console.log(params);
-    });
+    }); */
 
 </script>
 {% endblock %}

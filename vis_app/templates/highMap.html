@@ -118,6 +118,10 @@ echarts
         ]
     }
     myMap.setOption(mapOption);
+    
+    window.addEventListener("resize", function () {
+        myMap.resize();
+    });
 
     myMap.on('click', function (params) {
         place = params.data[0]
