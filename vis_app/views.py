@@ -92,3 +92,36 @@ def airtemMapTimeline(request):
             'yearMean': json.dumps(year_mean),
             # 'stationData': json.dumps(stationData)
         })
+
+
+def index(request):
+    date_list = []
+    for y in range(2014, 2017):
+        for m in range(1, 13):
+            date_list.append(str(y) + '|' + str(m))
+
+    # 连接到一个给定的数据库
+    conn = postgreSQLconnect()
+    # 建立游标，用来执行数据库操作
+    cursor = conn.cursor()
+    # 执行SQL SELECT命令
+    cursor.execute("SELECT * from hightemperature")
+    # 获取SELECT返回的元组
+    rowstem = cursor.fetchall()
+
+    hightem = pd.DataFrame(np.array(rowstem),
+                           columns=['stationid', 'lon', 'lat'] + date_list)
+
+    year_mean = {}
+    for date in date_list:
+        yeardata = hightem[['stationid', 'lon', 'lat', date]].round({date: 2})
+        year_mean[date] = yeardata.values.tolist()
+
+    return render(
+        request,
+        'index.html',
+        {
+            'yearList': json.dumps(date_list),
+            'yearMean': json.dumps(year_mean),
+            # 'stationData': json.dumps(stationData)
+        })
